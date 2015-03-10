@@ -18,12 +18,17 @@ namespace TechTalk.SpecFlow.Generator.Project
             this.configurationLoader = configurationLoader;
         }
 
-        public static SpecFlowProject LoadSpecFlowProjectFromMsBuild(string projectFilePath)
+        public static SpecFlowProject LoadSpecFlowProjectFromMsBuild(string projectFilePath, string appConfigFileName = "app.config")
         {
-            return new MsBuildProjectReader(new GeneratorConfigurationProvider()).ReadSpecFlowProject(projectFilePath);
+            return new MsBuildProjectReader(new GeneratorConfigurationProvider()).ReadSpecFlowProject(projectFilePath,appConfigFileName);
         }
 
         public SpecFlowProject ReadSpecFlowProject(string projectFilePath)
+        {
+            return ReadSpecFlowProject(projectFilePath, "app.config");
+        }
+
+        private SpecFlowProject ReadSpecFlowProject(string projectFilePath, string appConfigFileName)
         {
             var project = Engine.GlobalEngine.GetLoadedProject(projectFilePath);
             if (project == null)
@@ -54,7 +59,7 @@ namespace TechTalk.SpecFlow.Generator.Project
                     specFlowProject.FeatureFiles.Add(featureFile);
                 }
 
-                if (Path.GetFileName(item.FinalItemSpec).Equals("app.config", StringComparison.InvariantCultureIgnoreCase))
+                if (Path.GetFileName(item.FinalItemSpec).Equals(appConfigFileName, StringComparison.InvariantCultureIgnoreCase))
                 {
                     var configFilePath = Path.Combine(projectFolder, item.FinalItemSpec);
                     var configFileContent = File.ReadAllText(configFilePath);
