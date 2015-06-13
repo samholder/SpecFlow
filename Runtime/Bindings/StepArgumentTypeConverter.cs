@@ -9,9 +9,12 @@ using TechTalk.SpecFlow.Tracing;
 
 namespace TechTalk.SpecFlow.Bindings
 {
+    using System.Collections.Generic;
+
     public interface IStepArgumentTypeConverter
     {
         object Convert(object value, IBindingType typeToConvertTo, CultureInfo cultureInfo);
+        object Convert(Queue<Object> values, IBindingType typeToConvertTo, CultureInfo cultureInfo);
         bool CanConvert(object value, IBindingType typeToConvertTo, CultureInfo cultureInfo);
     }
 
@@ -53,6 +56,31 @@ namespace TechTalk.SpecFlow.Bindings
                 return DoTransform(stepTransformation, value, cultureInfo);
 
             return ConvertSimple(typeToConvertTo, value, cultureInfo);
+        }
+
+        public object Convert(Queue<object> values, IBindingType typeToConvertTo, CultureInfo cultureInfo)
+        {
+            if (values == null) throw new ArgumentNullException("value");
+            var value = values.Dequeue();
+            if (typeToConvertTo == value.GetType())
+                return value;
+
+            var stepTransformation = GetMatchingStepTransformation(value, typeToConvertTo, true);
+            if (stepTransformation != null)
+                return DoMultipleValueTransform(stepTransformation, value, values, cultureInfo);
+
+            return ConvertSimple(typeToConvertTo, value, cultureInfo);
+        }
+
+        private object DoMultipleValueTransform(IStepArgumentTransformationBinding stepTransformation, object value, Queue<object> remainingValues, CultureInfo cultureInfo)
+        {
+            List<Object> arguments = new List<object>{value};
+            foreach (var param in stepTransformation.Method.Parameters.Skip(1))
+            {
+                arguments.Add(remainingValues.Dequeue());
+            }
+            TimeSpan duration;
+            return bindingInvoker.InvokeBinding(stepTransformation, contextManager, arguments.ToArray(), testTracer, out duration);
         }
 
         private object DoTransform(IStepArgumentTransformationBinding stepTransformation, object value, CultureInfo cultureInfo)

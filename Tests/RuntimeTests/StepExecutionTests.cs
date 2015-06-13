@@ -7,6 +7,9 @@ using TestStatus = TechTalk.SpecFlow.Infrastructure.TestStatus;
 
 namespace TechTalk.SpecFlow.RuntimeTests
 {
+    using Moq;
+    using Rhino.Mocks.Expectations;
+
     [Binding]
     public class StepExecutionTestsBindings
     {
@@ -93,11 +96,43 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
     }
 
+    [Binding]
+    public class StepExecutionTestsStepArgumentTransformationWithMultipleParameters
+    {
+        [Given("sample step with user param firstname '(.*)' lastname '(.*)'")]
+        public virtual void BindingWithoutParam1(Employee employee)
+        {
+
+        }
+
+        [StepArgumentTransformation]
+        public Employee TransformToEmployee(string firstName, string lastName)
+        {
+            return new Employee();
+        }
+    }
+
+    [Binding]
+    public class StepExecutionTestsStepArgumentTransformation
+    {
+        [Given("sample step with user param firstname '(.*)'")]
+        public virtual void BindingWithoutParam1(User user)
+        {
+
+        }
+
+        [StepArgumentTransformation]
+        public User TransformToEmployee(string firstName)
+        {
+            return new User(){  Name = firstName};
+        }
+    }
+
     [TestFixture]
     public class StepExecutionTests : StepExecutionTestsBase
     {
         [Test]
-        public void SholdCallBindingWithoutParameter()
+        public void ShouldCallBindingWithoutParameter()
         {
             StepExecutionTestsBindings bindingInstance;
             TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
@@ -113,7 +148,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Test]
-        public void SholdCallBindingSingleParameter()
+        public void ShouldCallBindingSingleParameter()
         {
             StepExecutionTestsBindings bindingInstance;
             TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
@@ -129,7 +164,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Test]
-        public void SholdCallBindingMultipleParameter()
+        public void ShouldCallBindingMultipleParameter()
         {
             StepExecutionTestsBindings bindingInstance;
             TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
@@ -145,7 +180,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Test]
-        public void SholdCallBindingWithTableParameter()
+        public void ShouldCallBindingWithTableParameter()
         {
             StepExecutionTestsBindings bindingInstance;
             TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
@@ -162,7 +197,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Test]
-        public void SholdCallBindingWithMlStringParam()
+        public void ShouldCallBindingWithMlStringParam()
         {
             StepExecutionTestsBindings bindingInstance;
             TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
@@ -179,7 +214,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Test]
-        public void SholdCallBindingWithTableAndMlStringParam()
+        public void ShouldCallBindingWithTableAndMlStringParam()
         {
             StepExecutionTestsBindings bindingInstance;
             TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
@@ -197,7 +232,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Test]
-        public void SholdCallBindingWithMixedParams()
+        public void ShouldCallBindingWithMixedParams()
         {
             StepExecutionTestsBindings bindingInstance;
             TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
@@ -215,7 +250,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Test]
-        public void SholdRaiseAmbiguousIfMultipleMatch()
+        public void ShouldRaiseAmbiguousIfMultipleMatch()
         {
             StepExecutionTestsAmbiguousBindings bindingInstance;
             TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
@@ -229,7 +264,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Test]
-        public void SholdDistinguishByTableParam_CallWithoutTable()
+        public void ShouldDistinguishByTableParam_CallWithoutTable()
         {
             StepExecutionTestsBindings bindingInstance;
             TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
@@ -245,7 +280,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Test]
-        public void SholdDistinguishByTableParam_CallWithTable()
+        public void ShouldDistinguishByTableParam_CallWithTable()
         {
             StepExecutionTestsBindings bindingInstance;
             TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
@@ -262,7 +297,7 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
 
         [Test]
-        public void SholdRaiseBindingErrorIfWrongParamNumber()
+        public void ShouldRaiseBindingErrorIfWrongParamNumber()
         {
             StepExecutionTestsBindings bindingInstance;
             TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
@@ -275,6 +310,36 @@ namespace TechTalk.SpecFlow.RuntimeTests
             MockRepository.VerifyAll();
         }
 
+        [Test]
+        public void ShouldCallBindingWhenStepWithMultipleParamsIsTransformed()
+        {
+            StepExecutionTestsStepArgumentTransformationWithMultipleParameters bindingInstance;
+            TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
 
+            bindingInstance.Expect(b => b.BindingWithoutParam1(Arg<Employee>.Is.NotNull));
+
+            MockRepository.ReplayAll();
+
+            testRunner.Given("sample step with user param firstname 'John' lastname 'Smith'");
+
+            Assert.AreEqual(TestStatus.OK, GetLastTestStatus());
+            MockRepository.VerifyAll();
+        }
+
+        [Test]
+        public void ShouldCallBindingWhenStepIsTransformed()
+        {
+            StepExecutionTestsStepArgumentTransformation bindingInstance;
+            TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
+
+            bindingInstance.Expect(b => b.BindingWithoutParam1(Arg<User>.Is.NotNull));
+
+            MockRepository.ReplayAll();
+
+            testRunner.Given("sample step with user param firstname 'John'");
+
+            Assert.AreEqual(TestStatus.OK, GetLastTestStatus());
+            MockRepository.VerifyAll();
+        }
     }
 }

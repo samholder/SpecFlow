@@ -36,6 +36,22 @@ namespace TechTalk.SpecFlow.RuntimeTests
         }
     }
 
+    [Binding]
+    public class EmployeeCreator
+    {
+        [StepArgumentTransformation]
+        public Employee CreateEmployee(string firstName, string lastName)
+        {
+            return new Employee { FirstName = firstName, LastName=lastName };
+        }
+    }
+
+    public class Employee
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+    }
+
     [TestFixture]
     public class StepTransformationTests
     {
@@ -125,6 +141,22 @@ namespace TechTalk.SpecFlow.RuntimeTests
 
             Assert.That(result, Is.Not.Null);
             Assert.That(result, Is.EqualTo(resultUsers));
+        }
+
+        [Test]
+        public void EmployeeConverterShouldConvertMultipleStringsToEmployee()
+        {
+            EmployeeCreator stepTransformationInstance = new EmployeeCreator();
+            var transformMethod = stepTransformationInstance.GetType().GetMethod("CreateEmployee");
+            var stepTransformationBinding = CreateStepTransformationBinding(@"", transformMethod);
+
+            var invoker = new BindingInvoker(new RuntimeConfiguration(), new Mock<IErrorProvider>().Object);
+            TimeSpan duration;
+            var result = invoker.InvokeBinding(stepTransformationBinding, contextManagerStub.Object, new object[] { "John","Smith" }, new Mock<ITestTracer>().Object, out duration);
+            Assert.NotNull(result);
+            Assert.That(result.GetType(), Is.EqualTo(typeof(Employee)));
+            Assert.That(((Employee)result).FirstName, Is.EqualTo("John"));
+            Assert.That(((Employee)result).LastName, Is.EqualTo("Smith"));
         }
     }
 
