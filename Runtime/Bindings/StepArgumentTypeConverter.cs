@@ -98,7 +98,7 @@ namespace TechTalk.SpecFlow.Bindings
                 return DoMultipleValueTransform(stepTransformation, values, cultureInfo);
             }
 
-            return ConvertSimple(typeToConvertTo, value, cultureInfo);
+            return ConvertSimple(typeToConvertTo, values.Dequeue(), cultureInfo);
         }
 
         public bool CanConvert(object value, IBindingType typeToConvertTo, CultureInfo cultureInfo)
