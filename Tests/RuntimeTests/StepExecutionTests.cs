@@ -82,6 +82,20 @@
     }
 
     [Binding]
+    public class StepExecutionTestsWithRegexBindings
+    {
+        [StepArgumentTransformation(@"in (\d+) days")]
+        public DateTime ConvertInDays(int days)
+        {
+            return DateTime.Today.AddDays(days);
+        }
+        [Given(@"I have an appointment (.*)")]
+        public virtual void GivenIHaveAnAppointmentAt(DateTime time)
+        { }
+
+    }
+
+    [Binding]
     public class StepExecutionTestsStepArgumentTransformationWithMultipleParameters
     {
         [Given("sample step with user param firstname '(.*)' lastname '(.*)'")]
@@ -422,6 +436,22 @@
             MockRepository.ReplayAll();
 
             testRunner.Given("sample step with string 'justAString' param firstdouble 11.6 lastdouble 10.5 then firstname 'John' lastname 'Smith' then a int 87 follwed by param firstint 65 lastint 66 and finally a string 'finalString'");
+
+            Assert.AreEqual(TestStatus.OK, GetLastTestStatus());
+            MockRepository.VerifyAll();
+        }
+
+        [Test]
+        public void ShouldCallBindingWitRegexTransformation()
+        {
+            StepExecutionTestsWithRegexBindings bindingInstance;
+            TestRunner testRunner = GetTestRunnerFor(out bindingInstance);
+
+            bindingInstance.Expect(b => b.GivenIHaveAnAppointmentAt(DateTime.Today.AddDays(2)));
+
+            MockRepository.ReplayAll();
+
+            testRunner.Given("I have an appointment in 2 days");
 
             Assert.AreEqual(TestStatus.OK, GetLastTestStatus());
             MockRepository.VerifyAll();

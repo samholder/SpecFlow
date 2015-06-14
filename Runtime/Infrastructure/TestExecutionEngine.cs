@@ -418,18 +418,7 @@ namespace TechTalk.SpecFlow.Infrastructure
                 return stepSpecifiedArguments.Dequeue();
 
             return stepArgumentTypeConverter.Convert(stepSpecifiedArguments, typeToConvertTo, FeatureContext.BindingCulture);
-        }
-
-        private object ConvertArg(object value, IBindingType typeToConvertTo)
-        {
-            Debug.Assert(value != null);
-            Debug.Assert(typeToConvertTo != null);
-
-            if (typeToConvertTo.IsAssignableTo(value.GetType()))
-                return value;
-
-            return stepArgumentTypeConverter.Convert(value, typeToConvertTo, FeatureContext.BindingCulture);
-        }
+        }        
 
         #endregion
 

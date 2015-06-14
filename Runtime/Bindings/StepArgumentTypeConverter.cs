@@ -12,8 +12,6 @@ namespace TechTalk.SpecFlow.Bindings
 
     public interface IStepArgumentTypeConverter
     {
-        object Convert(object value, IBindingType typeToConvertTo, CultureInfo cultureInfo);
-
         object Convert(Queue<Object> values, IBindingType typeToConvertTo, CultureInfo cultureInfo);
 
         bool CanConvert(object value, IBindingType typeToConvertTo, CultureInfo cultureInfo);
@@ -59,7 +57,7 @@ namespace TechTalk.SpecFlow.Bindings
             }
         }
 
-        public object Convert(object value, IBindingType typeToConvertTo, CultureInfo cultureInfo)
+        private object Convert(object value, IBindingType typeToConvertTo, CultureInfo cultureInfo)
         {
             if (value == null)
             {
@@ -95,7 +93,11 @@ namespace TechTalk.SpecFlow.Bindings
             IStepArgumentTransformationBinding stepTransformation = GetMatchingStepTransformation(value, typeToConvertTo, true);
             if (stepTransformation != null)
             {
-                return DoMultipleValueTransform(stepTransformation, values, cultureInfo);
+                if (stepTransformation.Method.Parameters.Count() > 1)
+                {
+                    return DoMultipleValueTransform(stepTransformation, values, cultureInfo);
+                }
+                return DoTransform(stepTransformation, values.Dequeue(), cultureInfo);
             }
 
             return ConvertSimple(typeToConvertTo, values.Dequeue(), cultureInfo);
